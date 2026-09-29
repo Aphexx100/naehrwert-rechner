@@ -1,0 +1,22 @@
+{
+  "name": "naehrwert-rechner",
+  "version": "1.0.0",
+  "description": "Nährwert-Rechner und Vitalwerte-Tracker (Deutsch/Englisch): Packungen fotografieren, Mengen eintragen, Tagesbedarf sehen.",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "start": "node scripts/serve.mjs 8090",
+    "build": "node scripts/build-single.mjs",
+    "unit": "node scripts/unit-test.mjs",
+    "test": "node scripts/smoke-test.mjs",
+    "check": "npm run unit && npm run build && npm test"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "playwright": "^1.56.0"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true
+  }
+}

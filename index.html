@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Nährwert-Rechner und Vitalwerte-Tracker: Packungen fotografieren, Mengen eintragen, Tagesbedarf sehen.">
+<meta name="robots" content="noindex, nofollow">
+<title>Nährwert-Rechner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="src/css/tokens.css">
+<link rel="stylesheet" href="src/css/app.css">
+</head>
+<body>
+
+<div class="app">
+
+<header>
+  <div class="brandline">
+    <h1 data-i18n="app.titel">Nährwert-Rechner</h1>
+    <div class="sprachwahl" role="group" aria-label="Sprache / Language">
+      <button type="button" data-lang="de" aria-pressed="true">DE</button>
+      <button type="button" data-lang="en" aria-pressed="false">EN</button>
+    </div>
+  </div>
+  <div class="statusrow" id="statusrow"></div>
+</header>
+
+<div class="tabs" role="tablist">
+  <button role="tab" id="tab-tag" aria-controls="p-tag" aria-selected="true" data-i18n="tab.tag">Tag</button>
+  <button role="tab" id="tab-produkte" aria-controls="p-produkte" aria-selected="false" data-i18n="tab.produkte">Produkte</button>
+  <button role="tab" id="tab-vital" aria-controls="p-vital" aria-selected="false" data-i18n="tab.vital">Vitalwerte</button>
+  <button role="tab" id="tab-verlauf" aria-controls="p-verlauf" aria-selected="false" data-i18n="tab.verlauf">Verlauf</button>
+  <button role="tab" id="tab-setup" aria-controls="p-setup" aria-selected="false" data-i18n="tab.setup">Setup</button>
+</div>
+
+<div class="offline" id="offline" hidden data-i18n="status.offlineHinweis"></div>
+
+<div class="datumswahl" id="datumswahl">
+  <button type="button" class="btn ghost small" id="dZurueck" data-i18n-aria="datum.frueher">‹</button>
+  <input type="date" id="dFeld" aria-label="Datum">
+  <button type="button" class="btn ghost small" id="dVor" data-i18n-aria="datum.spaeter">›</button>
+  <button type="button" class="btn ghost small" id="dHeute" data-i18n="datum.heute">Heute</button>
+</div>
+
+<!-- ==================== TAG ==================== -->
+<section class="panel" id="p-tag" role="tabpanel" aria-labelledby="tab-tag">
+  <div class="card" id="tagSumme"></div>
+  <div id="mahlzeiten"></div>
+  <div class="zeile-knoepfe">
+    <button type="button" class="btn ghost" id="mahlzeitNeu" data-i18n="tag.mahlzeitNeu">+ Mahlzeit</button>
+  </div>
+  <div class="card">
+    <h2 data-i18n="tag.notiz">Notiz</h2>
+    <textarea id="tagNotiz" data-i18n-ph="tag.notizPh"></textarea>
+  </div>
+</section>
+
+<!-- ==================== PRODUKTE ==================== -->
+<section class="panel" id="p-produkte" role="tabpanel" aria-labelledby="tab-produkte" hidden>
+  <div class="card">
+    <h2 data-i18n="prod.foto">Packung fotografieren</h2>
+    <p class="hint" data-i18n="prod.fotoHinweis"></p>
+    <div class="zeile-knoepfe">
+      <label class="btn" for="fotoKamera" data-i18n="prod.kamera">Kamera</label>
+      <input type="file" id="fotoKamera" accept="image/*" capture="environment" multiple hidden>
+      <label class="btn ghost" for="fotoDatei" data-i18n="prod.datei">Fotos wählen</label>
+      <input type="file" id="fotoDatei" accept="image/*" multiple hidden>
+    </div>
+    <div class="fotoleiste" id="fotoLeiste"></div>
+    <div class="zeile-knoepfe" id="fotoAktion" hidden>
+      <button type="button" class="btn" id="fotoLesen" data-i18n="prod.lesen">Werte auslesen</button>
+      <button type="button" class="btn ghost" id="fotoVerwerfen" data-i18n="prod.verwerfen">Verwerfen</button>
+    </div>
+    <p class="meldung" id="fotoMeldung" role="status"></p>
+  </div>
+
+  <div class="card">
+    <h2 data-i18n="prod.recherche">Recherchieren</h2>
+    <p class="hint" data-i18n="prod.rechercheHinweis"></p>
+    <div class="suchzeile">
+      <input type="text" id="rBegriff" data-i18n-ph="prod.recherchePh" autocomplete="off">
+      <select id="rQuelle">
+        <option value="off">Open Food Facts</option>
+        <option value="usda">USDA FoodData Central</option>
+        <option value="claude" data-i18n="prod.quelleClaude">Claude-Websuche</option>
+        <option value="ean" data-i18n="prod.quelleEan">Barcode (EAN)</option>
+      </select>
+      <button type="button" class="btn" id="rStart" data-i18n="prod.suchen">Suchen</button>
+    </div>
+    <p class="meldung" id="rMeldung" role="status"></p>
+    <div id="rErgebnisse" class="ergebnisse"></div>
+  </div>
+
+  <div class="card">
+    <div class="kopfzeile">
+      <h2 data-i18n="prod.liste">Meine Produkte</h2>
+      <button type="button" class="btn ghost small" id="prodNeu" data-i18n="prod.manuell">+ Manuell</button>
+    </div>
+    <input type="text" id="prodFilter" data-i18n-ph="prod.filterPh" autocomplete="off">
+    <div id="prodListe" class="prodliste"></div>
+  </div>
+</section>
+
+<!-- ==================== VITALWERTE ==================== -->
+<section class="panel" id="p-vital" role="tabpanel" aria-labelledby="tab-vital" hidden>
+  <div class="card">
+    <h2 data-i18n="vital.titel">Vitalwerte</h2>
+    <p class="hint" data-i18n="vital.hinweis"></p>
+    <div id="vitalFelder" class="vitalfelder"></div>
+    <p class="meldung" id="vitalMeldung" role="status"></p>
+  </div>
+</section>
+
+<!-- ==================== VERLAUF ==================== -->
+<section class="panel" id="p-verlauf" role="tabpanel" aria-labelledby="tab-verlauf" hidden>
+  <div class="card">
+    <h2 data-i18n="verlauf.titel">Verlauf</h2>
+    <div class="grid2">
+      <div class="field">
+        <label class="fl" for="vlGroesse" data-i18n="verlauf.groesse">Größe</label>
+        <select id="vlGroesse"></select>
+      </div>
+      <div class="field">
+        <label class="fl" for="vlZeitraum" data-i18n="verlauf.zeitraum">Zeitraum</label>
+        <select id="vlZeitraum">
+          <option value="7">7</option>
+          <option value="14">14</option>
+          <option value="30" selected>30</option>
+          <option value="90">90</option>
+          <option value="365">365</option>
+        </select>
+      </div>
+    </div>
+    <div id="vlGrafik" class="grafik"></div>
+    <div id="vlKennzahlen" class="kennzahlen"></div>
+  </div>
+  <div class="card">
+    <h2 data-i18n="verlauf.mittel">Durchschnitt je Tag</h2>
+    <p class="hint" data-i18n="verlauf.mittelHinweis"></p>
+    <div id="vlMittel"></div>
+    <div class="zeile-knoepfe">
+      <button type="button" class="btn ghost" id="vlCsv" data-i18n="verlauf.csv">CSV exportieren</button>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SETUP ==================== -->
+<section class="panel" id="p-setup" role="tabpanel" aria-labelledby="tab-setup" hidden>
+  <div class="card">
+    <h2 data-i18n="setup.ablage">Datenablage</h2>
+    <p class="hint" data-i18n="setup.ablageHinweis"></p>
+    <div class="field">
+      <label class="fl" for="sBackend" data-i18n="setup.backend">Ablage</label>
+      <select id="sBackend">
+        <option value="auto" data-i18n="setup.backendAuto">GitHub, wenn eingerichtet</option>
+        <option value="github" data-i18n="setup.backendGithub">GitHub-Repository</option>
+        <option value="local" data-i18n="setup.backendLokal">Nur dieses Gerät</option>
+      </select>
+    </div>
+    <div class="grid2">
+      <div class="field"><label class="fl" for="sOwner" data-i18n="setup.owner">GitHub-Benutzer</label><input type="text" id="sOwner" autocomplete="off"></div>
+      <div class="field"><label class="fl" for="sRepo" data-i18n="setup.repo">Daten-Repository</label><input type="text" id="sRepo" autocomplete="off" placeholder="naehrwert-daten"></div>
+      <div class="field"><label class="fl" for="sBranch">Branch</label><input type="text" id="sBranch" autocomplete="off" placeholder="main"></div>
+      <div class="field"><label class="fl" for="sPfad" data-i18n="setup.pfad">Unterordner</label><input type="text" id="sPfad" autocomplete="off" placeholder="naehrwerte"></div>
+    </div>
+    <div class="field">
+      <label class="fl" for="sToken" data-i18n="setup.token">Zugriffsschlüssel</label>
+      <input type="password" id="sToken" autocomplete="off" placeholder="github_pat_…">
+    </div>
+    <div class="zeile-knoepfe">
+      <button type="button" class="btn ghost" id="sTesten" data-i18n="setup.testen">Verbindung prüfen</button>
+      <button type="button" class="btn" id="sSpeichern" data-i18n="setup.speichern">Ablage speichern</button>
+      <button type="button" class="btn ghost" id="sPush" data-i18n="setup.push">Lokale Daten hochladen</button>
+    </div>
+    <p class="meldung" id="sMeldung" role="status"></p>
+  </div>
+
+  <div class="card">
+    <h2 data-i18n="setup.ki">Claude (Fotos lesen, Websuche)</h2>
+    <p class="hint" data-i18n="setup.kiHinweis"></p>
+    <div class="grid2">
+      <div class="field"><label class="fl" for="aKey" data-i18n="setup.kiKey">Anthropic-Schlüssel</label><input type="password" id="aKey" autocomplete="off" placeholder="sk-ant-…"></div>
+      <div class="field"><label class="fl" for="aModel" data-i18n="setup.kiModell">Modell</label><input type="text" id="aModel" autocomplete="off" placeholder="claude-opus-5-5"></div>
+    </div>
+    <div class="field"><label class="fl" for="uKey" data-i18n="setup.usdaKey">USDA-Schlüssel (optional)</label><input type="password" id="uKey" autocomplete="off" placeholder="DEMO_KEY"></div>
+    <div class="zeile-knoepfe"><button type="button" class="btn" id="aSpeichern" data-i18n="setup.schluesselSpeichern">Schlüssel speichern</button></div>
+    <p class="meldung" id="aMeldung" role="status"></p>
+  </div>
+
+  <div class="card">
+    <h2 data-i18n="setup.ziele">Tagesziele</h2>
+    <p class="hint" data-i18n="setup.zieleHinweis"></p>
+    <div id="zielTabelle" class="zieltabelle"></div>
+    <div class="zeile-knoepfe">
+      <button type="button" class="btn" id="zielSpeichern" data-i18n="setup.zieleSpeichern">Ziele speichern</button>
+      <button type="button" class="btn ghost" id="zielZurueck" data-i18n="setup.zieleVorgabe">Auf Vorgabe zurück</button>
+    </div>
+    <p class="meldung" id="zielMeldung" role="status"></p>
+  </div>
+
+  <div class="card">
+    <h2 data-i18n="setup.masse">Haushaltsmaße</h2>
+    <p class="hint" data-i18n="setup.masseHinweis"></p>
+    <div class="grid3" id="masseFelder"></div>
+    <h2 class="unter" data-i18n="setup.mahlzeiten">Mahlzeiten</h2>
+    <p class="hint" data-i18n="setup.mahlzeitenHinweis"></p>
+    <input type="text" id="mahlzeitNamen">
+    <h2 class="unter" data-i18n="setup.vitalAuswahl">Angezeigte Vitalwerte</h2>
+    <div id="vitalAuswahl" class="checkliste"></div>
+    <div class="zeile-knoepfe"><button type="button" class="btn" id="cfgSpeichern" data-i18n="setup.cfgSpeichern">Einstellungen speichern</button></div>
+    <p class="meldung" id="cfgMeldung" role="status"></p>
+  </div>
+
+  <div class="card">
+    <h2 data-i18n="setup.sicherung">Sicherung</h2>
+    <p class="hint" data-i18n="setup.sicherungHinweis"></p>
+    <div class="zeile-knoepfe">
+      <button type="button" class="btn ghost" id="exportJson" data-i18n="setup.export">Alles als JSON sichern</button>
+      <label class="btn ghost" for="importJson" data-i18n="setup.import">JSON einspielen</label>
+      <input type="file" id="importJson" accept="application/json,.json" hidden>
+    </div>
+    <p class="meldung" id="sichMeldung" role="status"></p>
+  </div>
+</section>
+
+<dialog id="editor" class="editor" aria-labelledby="edTitel">
+  <form method="dialog" id="edForm"></form>
+</dialog>
+
+</div>
+
+<script type="module" src="src/js/main.js"></script>
+</body>
+</html>
