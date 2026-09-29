@@ -8,7 +8,7 @@ const KEY = 'nwr.settings.v1';
 
 const LEER = {
   backend: 'auto',       /* auto | local | github */
-  gh: { owner: '', repo: '', branch: 'main', pfad: 'naehrwerte', token: '' },
+  gh: { owner: '', repo: 'naehrwert-daten', branch: 'main', pfad: 'naehrwerte', token: '' },
   anthropic: { key: '', model: 'claude-opus-5-5' },
   usda: { key: '' }
 };
@@ -52,3 +52,6 @@ export function saveSettings(patch) {
 }
 
 export const ghKomplett = (g = settings().gh) => !!(g.owner && g.repo && g.token);
+
+/** Welche Pflichtfelder fehlen — fuer eine Meldung, die das Feld beim Namen nennt. */
+export const ghFehlt = (g = settings().gh) => ['owner', 'repo', 'token'].filter((k) => !g[k]);

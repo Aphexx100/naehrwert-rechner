@@ -104,10 +104,15 @@ async function laufe(browser, url, label, voll) {
 
   /* ---- Setup: GitHub und Claude eintragen ---- */
   await seite.click('#tab-setup');
-  await seite.fill('#sOwner', 'test');
-  await seite.fill('#sRepo', 'naehrwert-daten');
+  pruefe('Repository-Feld mit echter Vorgabe, nicht nur Platzhalter', (await seite.inputValue('#sRepo')) === 'naehrwert-daten');
   await seite.fill('#sToken', 'test-token');
   await seite.click('#sTesten');
+  await seite.waitForFunction(() => /GitHub-Benutzer/.test(document.getElementById('sMeldung').textContent));
+  pruefe('Fehlendes Feld wird beim Namen genannt', /Es fehlt: GitHub-Benutzer\./.test(await seite.locator('#sMeldung').innerText()));
+  /* Eingefuegte Adresse: Benutzer und Repository daraus lesen. */
+  await seite.fill('#sRepo', 'github.com/test/naehrwert-daten');
+  await seite.click('#sTesten');
+  pruefe('Adresse im Repository-Feld wird zerlegt', (await seite.inputValue('#sOwner')) === 'test' && (await seite.inputValue('#sRepo')) === 'naehrwert-daten');
   await seite.waitForFunction(() => /privat/.test(document.getElementById('sMeldung').textContent));
   pruefe('Verbindung prüfen meldet privates Repository', true);
   await seite.click('#sSpeichern');

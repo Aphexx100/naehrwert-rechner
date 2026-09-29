@@ -14,7 +14,7 @@
    Das Datenrepository muss privat sein. Der Zugriffsschluessel steht im
    localStorage des Browsers, nie im Repository. */
 
-import { settings, ghKomplett } from '../settings.js';
+import { settings, ghKomplett, ghFehlt } from '../settings.js';
 
 const API = 'https://api.github.com';
 
@@ -228,7 +228,7 @@ export const githubStore = {
 /** Zugangsdaten pruefen, ohne etwas zu schreiben. */
 export async function testeGithub() {
   const g = settings().gh;
-  if (!ghKomplett(g)) return { ok: false, code: 'unvollstaendig' };
+  if (!ghKomplett(g)) return { ok: false, code: 'unvollstaendig', fehlt: ghFehlt(g) };
   try {
     const r = await api(`/repos/${g.owner}/${g.repo}`);
     if (!r) return { ok: false, code: 'nicht_gefunden' };

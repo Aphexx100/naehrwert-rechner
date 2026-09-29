@@ -32,16 +32,30 @@ function fuelleAblage() {
   $('uKey').value = s.usda.key;
 }
 
-const ablageAusFeldern = () => saveSettings({
-  backend: $('sBackend').value,
-  gh: {
-    owner: $('sOwner').value.trim(),
-    repo: $('sRepo').value.trim(),
-    branch: $('sBranch').value.trim() || 'main',
-    pfad: $('sPfad').value.trim().replace(/^\/|\/$/g, '') || 'naehrwerte',
-    token: $('sToken').value.trim()
+/* Nimmt auch eine eingefuegte Adresse wie github.com/Aphexx100/naehrwert-daten
+   oder "Aphexx100/naehrwert-daten" im Repository-Feld. Leere Felder fallen
+   auf die Vorgabe zurueck und werden sichtbar wieder eingetragen. */
+function ablageAusFeldern() {
+  let owner = $('sOwner').value.trim().replace(/^@/, '');
+  let repo = $('sRepo').value.trim().replace(/\.git$/, '').replace(/^(https?:\/\/)?(www\.)?github\.com\//, '').replace(/\/+$/, '');
+  if (repo.includes('/')) {
+    const [o, r] = repo.split('/');
+    if (!owner) owner = o;
+    repo = r;
   }
-});
+  const s = saveSettings({
+    backend: $('sBackend').value,
+    gh: {
+      owner,
+      repo: repo || 'naehrwert-daten',
+      branch: $('sBranch').value.trim() || 'main',
+      pfad: $('sPfad').value.trim().replace(/^\/|\/$/g, '') || 'naehrwerte',
+      token: $('sToken').value.trim()
+    }
+  });
+  fuelleAblage();
+  return s;
+}
 
 function renderZiele() {
   fuelle($('zielTabelle'), NAEHRSTOFFE.filter((n) => n.key !== 'energy_kj').map((n) => el('div', { class: 'nw-zeile' }, [
@@ -85,7 +99,7 @@ export function initSetup(nachAblageWechsel) {
     ablageAusFeldern();
     melde('sMeldung', t('setup.prueft'), 'laeuft');
     const r = await testeGithub();
-    melde('sMeldung', t(`gh.${r.code}`, { name: r.name || '', text: r.text || '' }), r.ok && r.code === 'privat' ? 'gut' : 'fehler');
+    melde('sMeldung', t(`gh.${r.code}`, { name: r.name || '', text: r.text || '', fehlt: (r.fehlt || []).map((k) => t(`setup.${k}`)).join(', ') }), r.ok && r.code === 'privat' ? 'gut' : 'fehler');
   });
   $('sSpeichern').addEventListener('click', async () => {
     ablageAusFeldern();
